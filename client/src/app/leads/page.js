@@ -39,14 +39,11 @@ export default function LeadsPage() {
 
   const handleFilterChange = (f) => { setFilters(f); fetchLeads(f); };
 
-  // FIX - Issue #15: Added try/catch to all action handlers
-  // Old code had no error handling — if API call failed, modal closed silently
-  // with no feedback to the user. Now shows actionError message.
+  // FIX - Issue15
   const handleAdd = async (data) => {
     try {
       await addLead(data);
       fetchLeads();
-      setShowForm(false);
       setActionError('');
     } catch (error) {
       setActionError(error?.response?.data?.message || 'Failed to add lead');
@@ -57,17 +54,13 @@ export default function LeadsPage() {
     try {
       await updateLead(editLead._id, data);
       fetchLeads();
-      setShowForm(false);
-      setEditLead(null);
       setActionError('');
     } catch (error) {
       setActionError(error?.response?.data?.message || 'Failed to update lead');
     }
   };
 
-  // FIX - Issue #16: Added deleteLoading state to prevent double-clicks
-  // Old code had no loading indicator — user could click Delete multiple times
-  // firing multiple delete requests for the same lead.
+  // FIX - Issue16
   const handleDelete = async (id) => {
     setDeleteLoading(true);
     try {
