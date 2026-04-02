@@ -82,9 +82,12 @@ export default function LeadForm({ onSubmit, onClose, initialData }) {
                 notes: form.notes,
             };
             await onSubmit(submitData);
-            onClose();
+            onClose(); // only runs if onSubmit succeeded
         } catch (err) {
-            setError(err?.response?.data?.message || 'Something went wrong');
+            // err could be the raw axios error (from api.js)
+            // or a re-thrown error from page.js handleAdd/handleEdit
+            const message = err?.response?.data?.message || err?.message || 'Something went wrong';
+            setError(message);
         } finally {
             setLoading(false);
         }

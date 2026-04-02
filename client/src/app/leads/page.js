@@ -46,7 +46,7 @@ export default function LeadsPage() {
       fetchLeads();
       setActionError('');
     } catch (error) {
-      setActionError(error?.response?.data?.message || 'Failed to add lead');
+      throw error; // ← re-throw so LeadForm catches it and shows error inside modal
     }
   };
 
@@ -56,7 +56,7 @@ export default function LeadsPage() {
       fetchLeads();
       setActionError('');
     } catch (error) {
-      setActionError(error?.response?.data?.message || 'Failed to update lead');
+      throw error; // ← re-throw so LeadForm catches it and shows error inside modal
     }
   };
 
