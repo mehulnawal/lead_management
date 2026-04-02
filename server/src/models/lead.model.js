@@ -1,20 +1,18 @@
 import mongoose from 'mongoose';
 
 const leadSchema = new mongoose.Schema(
-
     {
+        // FIX - Issue10
         companyName: {
             type: String,
             required: [true, 'Company name is required'],
             trim: true,
-            lowercase: true
         },
 
         contactPerson: {
             type: String,
             required: [true, 'Contact person name is required'],
             trim: true,
-            lowercase: true
         },
 
         email: {
@@ -53,8 +51,13 @@ const leadSchema = new mongoose.Schema(
             default: ""
         },
     },
-
     { timestamps: true }
-)
+);
+
+// FIX - Issue25
+leadSchema.index({ temperature: 1 });
+leadSchema.index({ leadSource: 1 });
+leadSchema.index({ createdAt: -1 });
+leadSchema.index({ companyName: 1, contactPerson: 1 });
 
 export const Lead = mongoose.model("Lead", leadSchema);

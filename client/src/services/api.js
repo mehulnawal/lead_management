@@ -1,7 +1,14 @@
 import axios from 'axios';
 
+// FIX - Issue17
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+
+if (!API_URL) {
+    console.error('NEXT_PUBLIC_BACKEND_URL is not defined in environment variables. Falling back to localhost.');
+}
+
 const API = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+    baseURL: API_URL || 'http://localhost:8000/api/v1',
     withCredentials: true
 });
 

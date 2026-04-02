@@ -8,8 +8,8 @@ This project demonstrates CRUD operations, filtering, sorting, and a basic dashb
 
 ```
 root/
-  ├── frontend/   → Next.js (App Router)
-  ├── backend/    → Node.js + Express API
+  ├── client/   → Next.js (App Router)
+  ├── server/    → Node.js + Express API
 ```
 
 ---
@@ -85,19 +85,19 @@ Displays key metrics:
 ### Base URL
 
 ```
-/api/leads
+/api/v1/leads
 ```
 
 ### Endpoints
 
-| Method | Endpoint         | Description                  |
-| ------ | ---------------- | ---------------------------- |
-| GET    | /api/leads       | Get all leads (with filters) |
-| GET    | /api/leads/stats | Get lead statistics          |
-| GET    | /api/leads/:id   | Get single lead              |
-| POST   | /api/leads       | Create new lead              |
-| PUT    | /api/leads/:id   | Update lead                  |
-| DELETE | /api/leads/:id   | Delete lead                  |
+| Method | Endpoint            | Description                  |
+| ------ | ------------------- | ---------------------------- |
+| GET    | /api/v1/leads       | Get all leads (with filters) |
+| GET    | /api/v1/leads/stats | Get lead statistics          |
+| GET    | /api/v1/leads/:id   | Get single lead              |
+| POST   | /api/v1/leads       | Create new lead              |
+| PUT    | /api/v1/leads/:id   | Update lead                  |
+| DELETE | /api/v1/leads/:id   | Delete lead                  |
 
 ---
 
@@ -165,7 +165,7 @@ PORT=5000
 Run backend:
 
 ```
-npm run dev
+npm start
 ```
 
 ---

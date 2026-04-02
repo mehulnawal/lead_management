@@ -14,6 +14,14 @@ export default function LeadsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [filters, setFilters] = useState({ filterTemperature: '', filterLeadSource: '', sortValue: '' });
 
+  // FIX - Issue #15: Frontend Error Handling Incomplete
+  // Added actionError state to show errors from add/edit/delete to the user
+  const [actionError, setActionError] = useState('');
+
+  // FIX - Issue #16: Missing Loading State on Delete
+  // Added deleteLoading state to disable button and prevent double-clicks
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   const fetchLeads = (f = filters) => {
     setLoading(true);
     const params = {};
@@ -30,9 +38,49 @@ export default function LeadsPage() {
   useEffect(() => { fetchLeads(); }, []);
 
   const handleFilterChange = (f) => { setFilters(f); fetchLeads(f); };
-  const handleAdd = async (data) => { await addLead(data); fetchLeads(); };
-  const handleEdit = async (data) => { await updateLead(editLead._id, data); fetchLeads(); };
-  const handleDelete = async (id) => { await deleteLead(id); setDeleteConfirm(null); fetchLeads(); };
+
+  // FIX - Issue #15: Added try/catch to all action handlers
+  // Old code had no error handling — if API call failed, modal closed silently
+  // with no feedback to the user. Now shows actionError message.
+  const handleAdd = async (data) => {
+    try {
+      await addLead(data);
+      fetchLeads();
+      setShowForm(false);
+      setActionError('');
+    } catch (error) {
+      setActionError(error?.response?.data?.message || 'Failed to add lead');
+    }
+  };
+
+  const handleEdit = async (data) => {
+    try {
+      await updateLead(editLead._id, data);
+      fetchLeads();
+      setShowForm(false);
+      setEditLead(null);
+      setActionError('');
+    } catch (error) {
+      setActionError(error?.response?.data?.message || 'Failed to update lead');
+    }
+  };
+
+  // FIX - Issue #16: Added deleteLoading state to prevent double-clicks
+  // Old code had no loading indicator — user could click Delete multiple times
+  // firing multiple delete requests for the same lead.
+  const handleDelete = async (id) => {
+    setDeleteLoading(true);
+    try {
+      await deleteLead(id);
+      setDeleteConfirm(null);
+      fetchLeads();
+      setActionError('');
+    } catch (error) {
+      setActionError(error?.response?.data?.message || 'Failed to delete lead');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   return (
     <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 24px' }}>
@@ -76,7 +124,25 @@ export default function LeadsPage() {
         <FilterBar filters={filters} onChange={handleFilterChange} />
       </div>
 
-      {/* Error */}
+      {/* FIX - Issue #15: Action error banner (add/edit/delete failures) */}
+      {actionError && (
+        <div style={{
+          backgroundColor: '#ef444415', border: '1px solid #ef444430',
+          borderRadius: '10px', padding: '12px 16px',
+          fontSize: '13px', color: '#ef4444', marginBottom: '20px',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+        }}>
+          {actionError}
+          <span
+            onClick={() => setActionError('')}
+            style={{ cursor: 'pointer', fontWeight: 700, marginLeft: '12px' }}
+          >
+            ✕
+          </span>
+        </div>
+      )}
+
+      {/* Fetch Error */}
       {error && (
         <div style={{
           backgroundColor: '#ef444415', border: '1px solid #ef444430',
@@ -105,7 +171,7 @@ export default function LeadsPage() {
         </div>
       )}
 
-      {/* Grid — responsive */}
+      {/* Grid */}
       {!loading && leads.length > 0 && (
         <div style={{
           display: 'grid',
@@ -128,7 +194,7 @@ export default function LeadsPage() {
         <LeadForm
           initialData={editLead}
           onSubmit={editLead ? handleEdit : handleAdd}
-          onClose={() => { setShowForm(false); setEditLead(null); }}
+          onClose={() => { setShowForm(false); setEditLead(null); setActionError(''); }}
         />
       )}
 
@@ -158,22 +224,34 @@ export default function LeadsPage() {
               This action cannot be undone.
             </p>
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => setDeleteConfirm(null)} style={{
-                flex: 1, padding: '12px', borderRadius: '10px',
-                fontSize: '13px', fontWeight: 500,
-                backgroundColor: 'var(--surface2)',
-                border: '1px solid var(--border)',
-                color: 'var(--text)', cursor: 'pointer',
-              }}>
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                disabled={deleteLoading}
+                style={{
+                  flex: 1, padding: '12px', borderRadius: '10px',
+                  fontSize: '13px', fontWeight: 500,
+                  backgroundColor: 'var(--surface2)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text)',
+                  cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                  opacity: deleteLoading ? 0.5 : 1,
+                }}>
                 Cancel
               </button>
-              <button onClick={() => handleDelete(deleteConfirm)} style={{
-                flex: 1, padding: '12px', borderRadius: '10px',
-                fontSize: '13px', fontWeight: 600,
-                backgroundColor: '#ef4444', border: 'none',
-                color: 'white', cursor: 'pointer',
-              }}>
-                Delete
+
+              {/* FIX - Issue #16: Button shows "Deleting..." and is disabled while request is in flight */}
+              <button
+                onClick={() => handleDelete(deleteConfirm)}
+                disabled={deleteLoading}
+                style={{
+                  flex: 1, padding: '12px', borderRadius: '10px',
+                  fontSize: '13px', fontWeight: 600,
+                  backgroundColor: '#ef4444', border: 'none',
+                  color: 'white',
+                  cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                  opacity: deleteLoading ? 0.7 : 1,
+                }}>
+                {deleteLoading ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
